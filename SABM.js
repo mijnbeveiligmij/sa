@@ -1,5 +1,7 @@
-// SA Scripts 2023-05-12
-function getAllCourseData() {
+// All Interactions and Debug SA v2023-11-17
+// Changelog: in SA06 Eval vars verplaatst naar tweede submit-script, want daar worden ze pas gegenereerd.
+// 2023-11-17 1. Logs toegevoegd. 2. in function UpdateCompletion de variabele IsPageComplete als boolean gedefinieerd
+
 var SLplayer = GetPlayer();
 var UName = SLplayer.GetVar("G_ThisStudentID");
 var EpisodeID = SLplayer.GetVar("G_ThisEpisodeID");
@@ -22,41 +24,72 @@ ExecuteEpisode();
 GetDebug();
 
 function FirstRun() {
-	if (!UName) {
-		function getParameterByName(name, url) {
-			if (!url) url = window.location.href;
-			name = name.replace(/[\[\]]/g, "\\$&");
-			var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
-				results = regex.exec(url);
-			if (!results) return null;
-			if (!results[2]) return '';
-			return decodeURIComponent(results[2].replace(/\+/g, " "));
-		}
+    console.log("FirstRun function started");
 
-		var a = [];
-		var a1 = [];
-		var studentid = getParameterByName('actor');
-		a = studentid.split(",");
-		var x = a[1];
-		a1 = x.split(":");
-		UName = a1[2];
-		UName = UName.replace(/[\[\]\{\}\"]+/g, "");
+    if (!UName) {
+        console.log("UName is not set, proceeding to get actor parameter");
 
-		SLplayer.SetVar("G_ThisStudentID", UName);
-	}
+        function getParameterByName(name, url) {
+            console.log("getParameterByName called with name: ", name, " and url: ", url);
 
-	if (!PageCompletionStatuses) {
-		PageCompletionStatuses = "";
-		for (var i = 1; i <= ProjectTotalSlides; i++) {
-			var ProjectSlideNumber = i.toString().padStart(3, '0');
-			PageCompletionStatuses += "page" + ProjectSlideNumber + ": false\n";
-			SLplayer.SetVar("G_CompletionList", PageCompletionStatuses);
-		}
-	}
+            if (!url) url = window.location.href;
+            name = name.replace(/[\[\]]/g, "\\$&");
+            var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+                results = regex.exec(url);
+            console.log("Regex results for ", name, ": ", results);
 
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, " "));
+        }
+
+        var studentid = getParameterByName('actor');
+        console.log("Retrieved studentid: ", studentid);
+
+        var mailtoIndex = studentid.indexOf('mailto:');
+        console.log("Index of mailto: ", mailtoIndex);
+
+        if (mailtoIndex !== -1) {
+            var emailPart = studentid.substring(mailtoIndex);
+            console.log("Extracted email part: ", emailPart);
+
+            var emailMatches = emailPart.match(/mailto:([^"]+)/);
+            console.log("Email match result: ", emailMatches);
+
+            if (emailMatches && emailMatches.length > 1) {
+                UName = emailMatches[1];
+                console.log("Extracted email address: ", UName);
+
+                UName = UName.replace(/[\[\]\{\}"]+/g, "");
+                console.log("Cleaned email address: ", UName);
+
+                SLplayer.SetVar("G_ThisStudentID", UName);
+                console.log("Set G_ThisStudentID to: ", UName);
+            }
+        }
+    } else {
+        console.log("UName already set: ", UName);
+    }
+
+        if (!PageCompletionStatuses) {
+        console.log("Initializing PageCompletionStatuses");
+
+        PageCompletionStatuses = "";
+        for (var i = 1; i <= ProjectTotalSlides; i++) {
+            var ProjectSlideNumber = i.toString().padStart(3, '0');
+            PageCompletionStatuses += "page" + ProjectSlideNumber + ": false\n";
+        }
+        SLplayer.SetVar("G_CompletionList", PageCompletionStatuses);
+    }
+	console.log("FirstRun function ended");
 }
 
+
+
+
 function EpisodeSA00() {
+	console.log("function EpisodeSA00 started");
+	
 	Interactions1 = " \r\n" +
 		UName + ",SA00,Reflect01," + SLplayer.GetVar("q_SA00_Reflect_01") + "," + SLplayer.GetVar("q_SA00_Reflect_01_Comment") + "\r\n" +
 		UName + ",SA00,Reflect02," + SLplayer.GetVar("q_SA00_Reflect_02") + "," + SLplayer.GetVar("q_SA00_Reflect_02_Comment") + "\r\n" +
@@ -77,7 +110,7 @@ function EpisodeSA00() {
 		UName + ",SA00,Reflect15," + SLplayer.GetVar("q_SA00_Reflect_15") + "," + SLplayer.GetVar("q_SA00_Reflect_15_Comment") + "\r\n" +
 		UName + ",SA00,Reflect16," + SLplayer.GetVar("q_SA00_Reflect_16") + "," + SLplayer.GetVar("q_SA00_Reflect_16_Comment") + "\r\n" +
 		UName + ",SA00,Reflect17," + SLplayer.GetVar("q_SA00_Reflect_17") + "," + SLplayer.GetVar("q_SA00_Reflect_17_Comment") + "\r\n" +
-		UName + ",SA00,Reflect18," + SLplayer.GetVar("q_SA00_Reflect_18") + "," + SLplayer.GetVar("q_SA00_Reflect_18_Comment") + "\r\n" +
+		UName + ",SA00,Reflect18," + SLplayer.GetVar("q_SA00_Reflect_18") + "\r\n" +
 		UName + ",SA00,Reflect18A," + SLplayer.GetVar("q_SA00_Reflect_18A") + "\r\n" +
 		UName + ",SA00,Reflect18B," + SLplayer.GetVar("q_SA00_Reflect_18B") + "\r\n" +
 		UName + ",SA00,Reflect18C," + SLplayer.GetVar("q_SA00_Reflect_18C") + "\r\n" +
@@ -87,10 +120,13 @@ function EpisodeSA00() {
 		UName + ",SA00,Reflect18G," + SLplayer.GetVar("q_SA00_Reflect_18G") + "\r\n" +
 		UName + ",SA00,Reflect19," + SLplayer.GetVar("q_SA00_Reflect_19") + "\r\n" +
 		UName + ",SA00,Reflect20," + SLplayer.GetVar("q_SA00_Reflect_20") + "\r\n";
-
+		
+	console.log("function EpisodeSA00 ended");
 }
 
 function EpisodeSA01() {
+	console.log("function EpisodeSA01 started");
+		
 	Interactions1 = " \r\n" +
 		UName + ",SA01,Reflect01," + SLplayer.GetVar("q_SA01_Reflect_01") + "," + SLplayer.GetVar("q_SA01_Reflect_01_Comment") + "\r\n" +
 		UName + ",SA01,Reflect02," + SLplayer.GetVar("q_SA01_Reflect_02") + "," + SLplayer.GetVar("q_SA01_Reflect_02_Comment") + "\r\n" +
@@ -104,17 +140,16 @@ function EpisodeSA01() {
 		UName + ",SA01,Goal04," + SLplayer.GetVar("q_SA01_Goal_04") + "\r\n" +
 		UName + ",SA01,Goal05," + SLplayer.GetVar("q_SA01_Goal_05") + "\r\n" +
 		UName + ",SA01,Goal06," + SLplayer.GetVar("q_SA01_Goal_06") + "\r\n" +
-		UName + ",SA01,Goal07," + SLplayer.GetVar("q_SA01_Goal_07") + "\r\n" +
-		UName + ",SA01,Goal08," + SLplayer.GetVar("q_SA01_Goal_08") + "\r\n" +
 
 		UName + ",SA01,Eval01," + SLplayer.GetVar("q_SA01_Eval_01") + "," + SLplayer.GetVar("q_SA01_Eval_01_Comment") + "\r\n" +
 		UName + ",SA01,Eval02," + SLplayer.GetVar("q_SA01_Eval_02") + "," + SLplayer.GetVar("q_SA01_Eval_02_Comment") + "\r\n" +
 		UName + ",SA01,Eval03," + SLplayer.GetVar("q_SA01_Eval_03") + "," + SLplayer.GetVar("q_SA01_Eval_03_Comment") + "\r\n" +
 		UName + ",SA01,Eval04," + SLplayer.GetVar("q_SA01_Eval_04") + "," + SLplayer.GetVar("q_SA01_Eval_04_Comment") + "\r\n";
-
+		console.log("function EpisodeSA01 ended");
 }
 
 function EpisodeSA02() {
+	console.log("function EpisodeSA02 started");
 	Interactions1 = " \r\n" +
 		UName + ",SA02,Reflect01," + SLplayer.GetVar("q_SA02_Reflect_01") + "," + SLplayer.GetVar("q_SA02_Reflect_01_Comment") + "\r\n" +
 		UName + ",SA02,Reflect02," + SLplayer.GetVar("q_SA02_Reflect_02") + "," + SLplayer.GetVar("q_SA02_Reflect_02_Comment") + "\r\n" +
@@ -130,25 +165,27 @@ function EpisodeSA02() {
 		UName + ",SA02,Eval02," + SLplayer.GetVar("q_SA02_Eval_02") + "," + SLplayer.GetVar("q_SA02_Eval_02_Comment") + "\r\n" +
 		UName + ",SA02,Eval03," + SLplayer.GetVar("q_SA02_Eval_03") + "," + SLplayer.GetVar("q_SA02_Eval_03_Comment") + "\r\n" +
 		UName + ",SA02,Eval04," + SLplayer.GetVar("q_SA02_Eval_04") + "," + SLplayer.GetVar("q_SA02_Eval_04_Comment") + "\r\n";
+		console.log("function EpisodeSA02 ended");
 }
 
 function EpisodeSA03() {
+	console.log("function EpisodeSA03 started");
 	Interactions1 = " \r\n" +
 		UName + ",SA03,Reflect01," + SLplayer.GetVar("q_SA03_Reflect_01") + "," + SLplayer.GetVar("q_SA03_Reflect_01_Comment") + "\r\n" +
 		UName + ",SA03,Reflect02," + SLplayer.GetVar("q_SA03_Reflect_02") + "," + SLplayer.GetVar("q_SA03_Reflect_02_Comment") + "\r\n" +
 
 		UName + ",SA03,Goal01," + SLplayer.GetVar("q_SA03_Goal_01") + "," + SLplayer.GetVar("q_SA03_Goal_Comment") + "\r\n" +
 		UName + ",SA03,Goal02," + SLplayer.GetVar("q_SA03_Goal_02") + "\r\n" +
-		UName + ",SA03,Goal03," + SLplayer.GetVar("q_SA03_Goal_03") + "\r\n" +
-		UName + ",SA03,Goal04," + SLplayer.GetVar("q_SA03_Goal_04") + "\r\n" +
 
 		UName + ",SA03,Eval01," + SLplayer.GetVar("q_SA03_Eval_01") + "," + SLplayer.GetVar("q_SA03_Eval_01_Comment") + "\r\n" +
 		UName + ",SA03,Eval02," + SLplayer.GetVar("q_SA03_Eval_02") + "," + SLplayer.GetVar("q_SA03_Eval_02_Comment") + "\r\n" +
 		UName + ",SA03,Eval03," + SLplayer.GetVar("q_SA03_Eval_03") + "," + SLplayer.GetVar("q_SA03_Eval_03_Comment") + "\r\n" +
 		UName + ",SA03,Eval04," + SLplayer.GetVar("q_SA03_Eval_04") + "," + SLplayer.GetVar("q_SA03_Eval_04_Comment") + "\r\n";
+		console.log("function EpisodeSA03 ended");
 }
 
 function EpisodeSA04() {
+	console.log("function EpisodeSA04 started");
 	Interactions1 = " \r\n" +
 		UName + ",SA04,Reflect01," + SLplayer.GetVar("q_SA04_Reflect_01") + "," + SLplayer.GetVar("q_SA04_Reflect_01_Comment") + "\r\n" +
 		UName + ",SA04,Reflect02," + SLplayer.GetVar("q_SA04_Reflect_02") + "," + SLplayer.GetVar("q_SA04_Reflect_02_Comment") + "\r\n" +
@@ -165,9 +202,11 @@ function EpisodeSA04() {
 		UName + ",SA04,Eval02," + SLplayer.GetVar("q_SA04_Eval_02") + "," + SLplayer.GetVar("q_SA04_Eval_02_Comment") + "\r\n" +
 		UName + ",SA04,Eval03," + SLplayer.GetVar("q_SA04_Eval_03") + "," + SLplayer.GetVar("q_SA04_Eval_03_Comment") + "\r\n" +
 		UName + ",SA04,Eval04," + SLplayer.GetVar("q_SA04_Eval_04") + "," + SLplayer.GetVar("q_SA04_Eval_04_Comment") + "\r\n";
+		console.log("function EpisodeSA04 ended");
 }
 
 function EpisodeSA05() {
+	console.log("function EpisodeSA05 started");
 	Interactions1 = " \r\n" +
 		UName + ",SA05,Reflect01," + SLplayer.GetVar("q_SA05_Reflect_01") + "," + SLplayer.GetVar("q_SA05_Reflect_01_Comment") + "\r\n" +
 		UName + ",SA05,Reflect02," + SLplayer.GetVar("q_SA05_Reflect_02") + "," + SLplayer.GetVar("q_SA05_Reflect_02_Comment") + "\r\n" +
@@ -187,9 +226,11 @@ function EpisodeSA05() {
 		UName + ",SA05,Eval02," + SLplayer.GetVar("q_SA05_Eval_02") + "," + SLplayer.GetVar("q_SA05_Eval_02_Comment") + "\r\n" +
 		UName + ",SA05,Eval03," + SLplayer.GetVar("q_SA05_Eval_03") + "," + SLplayer.GetVar("q_SA05_Eval_03_Comment") + "\r\n" +
 		UName + ",SA05,Eval04," + SLplayer.GetVar("q_SA05_Eval_04") + "," + SLplayer.GetVar("q_SA05_Eval_04_Comment") + "\r\n";
+		console.log("function EpisodeSA05 ended");
 }
 
 function EpisodeSA06() {
+	console.log("function EpisodeSA06 started");
 	Interactions1 = " \r\n" +
 		UName + ",SA06,Reflect06_01," + SLplayer.GetVar("q_SA06_Reflect06_01") + "," + SLplayer.GetVar("q_SA06_Reflect06_01_Comment") + "\r\n" +
 		UName + ",SA06,Reflect06_02," + SLplayer.GetVar("q_SA06_Reflect06_02") + "," + SLplayer.GetVar("q_SA06_Reflect06_02_Comment") + "\r\n" +
@@ -222,12 +263,8 @@ function EpisodeSA06() {
 		UName + ",SA05,Reflect06_03," + SLplayer.GetVar("q_SA05_Reflect06_03") + "," + SLplayer.GetVar("q_SA05_Reflect06_03_Comment") + "\r\n" +
 		UName + ",SA05,Reflect06_04," + SLplayer.GetVar("q_SA05_Reflect06_04") + "," + SLplayer.GetVar("q_SA05_Reflect06_04_Comment") + "\r\n" +
 		UName + ",SA05,Reflect06_05," + SLplayer.GetVar("q_SA05_Reflect06_05") + "," + SLplayer.GetVar("q_SA05_Reflect06_05_Comment") + "\r\n" +
-		UName + ",SA05,Reflect06_06," + SLplayer.GetVar("q_SA05_Reflect06_06") + "," + SLplayer.GetVar("q_SA05_Reflect06_06_Comment") + "\r\n" +
+		UName + ",SA05,Reflect06_06," + SLplayer.GetVar("q_SA05_Reflect06_06") + "," + SLplayer.GetVar("q_SA05_Reflect06_06_Comment") + "\r\n";
 
-		UName + ",SA06,Eval_01," + SLplayer.GetVar("q_SA06_Eval_01") + "," + SLplayer.GetVar("q_SA06_Eval_01_Comment") + "\r\n" +
-		UName + ",SA06,Eval_02," + SLplayer.GetVar("q_SA06_Eval_02") + "," + SLplayer.GetVar("q_SA06_Eval_02_Comment") + "\r\n" +
-		UName + ",SA06,Eval_03," + SLplayer.GetVar("q_SA06_Eval_03") + "," + SLplayer.GetVar("q_SA06_Eval_03_Comment") + "\r\n" +
-		UName + ",SA06,Eval_04," + SLplayer.GetVar("q_SA06_Eval_04") + "," + SLplayer.GetVar("q_SA06_Eval_04_Comment") + "\r\n";
 
 	Interactions2 = " \r\n" +
 		UName + ",Chapter,Viewed,Completed" + "\r\n" +
@@ -268,10 +305,17 @@ function EpisodeSA06() {
 		UName + ",SA05,Goal06_03," + SLplayer.GetVar("q_SA05_Goal06_03") + "," + "\r\n" +
 		UName + ",SA05,Goal06_04," + SLplayer.GetVar("q_SA05_Goal06_04") + "," + "\r\n" +
 		UName + ",SA05,Goal06_05," + SLplayer.GetVar("q_SA05_Goal06_05") + "," + "\r\n" +
-		UName + ",SA05,Goal06_06," + SLplayer.GetVar("q_SA05_Goal06_06") + "\r\n";
+		UName + ",SA05,Goal06_06," + SLplayer.GetVar("q_SA05_Goal06_06") + "\r\n"
+		
+		UName + ",SA06,Eval_01," + SLplayer.GetVar("q_SA06_Eval_01") + "," + SLplayer.GetVar("q_SA06_Eval_01_Comment") + "\r\n" +
+		UName + ",SA06,Eval_02," + SLplayer.GetVar("q_SA06_Eval_02") + "," + SLplayer.GetVar("q_SA06_Eval_02_Comment") + "\r\n" +
+		UName + ",SA06,Eval_03," + SLplayer.GetVar("q_SA06_Eval_03") + "," + SLplayer.GetVar("q_SA06_Eval_03_Comment") + "\r\n" +
+		UName + ",SA06,Eval_04," + SLplayer.GetVar("q_SA06_Eval_04") + "," + SLplayer.GetVar("q_SA06_Eval_04_Comment") + "\r\n";
+		console.log("function EpisodeSA06 ended");
 }
 
 function EpisodeSA07() {
+	console.log("function EpisodeSA07 started");
 	Interactions1 = " \r\n" +
 		UName + ",SA07,Reflect01," + SLplayer.GetVar("q_SA07_Reflect_01") + "," + SLplayer.GetVar("q_SA07_Reflect_01_Comment") + "\r\n" +
 		UName + ",SA07,Reflect02," + SLplayer.GetVar("q_SA07_Reflect_02") + "," + SLplayer.GetVar("q_SA07_Reflect_02_Comment") + "\r\n" +
@@ -290,9 +334,11 @@ function EpisodeSA07() {
 		UName + ",SA07,Eval02," + SLplayer.GetVar("q_SA07_Eval_02") + "," + SLplayer.GetVar("q_SA07_Eval_02_Comment") + "\r\n" +
 		UName + ",SA07,Eval03," + SLplayer.GetVar("q_SA07_Eval_03") + "," + SLplayer.GetVar("q_SA07_Eval_03_Comment") + "\r\n" +
 		UName + ",SA07,Eval04," + SLplayer.GetVar("q_SA07_Eval_04") + "," + SLplayer.GetVar("q_SA07_Eval_04_Comment") + "\r\n";
+		console.log("function EpisodeSA07 ended");
 }
 
 function EpisodeSA08() {
+	console.log("function EpisodeSA08 started");
 	Interactions1 = " \r\n" +
 		UName + ",SA08,Reflect01," + SLplayer.GetVar("q_SA08_Reflect_01") + "," + SLplayer.GetVar("q_SA08_Reflect_01_Comment") + "\r\n" +
 		UName + ",SA08,Reflect02," + SLplayer.GetVar("q_SA08_Reflect_02") + "," + SLplayer.GetVar("q_SA08_Reflect_02_Comment") + "\r\n" +
@@ -310,9 +356,11 @@ function EpisodeSA08() {
 		UName + ",SA08,Eval02," + SLplayer.GetVar("q_SA08_Eval_02") + "," + SLplayer.GetVar("q_SA08_Eval_02_Comment") + "\r\n" +
 		UName + ",SA08,Eval03," + SLplayer.GetVar("q_SA08_Eval_03") + "," + SLplayer.GetVar("q_SA08_Eval_03_Comment") + "\r\n" +
 		UName + ",SA08,Eval04," + SLplayer.GetVar("q_SA08_Eval_04") + "," + SLplayer.GetVar("q_SA08_Eval_04_Comment") + "\r\n";
+		console.log("function EpisodeSA08 ended");
 }
 
 function EpisodeSA09() {
+	console.log("function EpisodeSA09 started");
 	Interactions1 = " \r\n" +
 		UName + ",SA09,Reflect01," + SLplayer.GetVar("q_SA09_Reflect_01") + "," + SLplayer.GetVar("q_SA09_Reflect_01_Comment") + "\r\n" +
 		UName + ",SA09,Reflect02," + SLplayer.GetVar("q_SA09_Reflect_02") + "," + SLplayer.GetVar("q_SA09_Reflect_02_Comment") + "\r\n" +
@@ -326,9 +374,11 @@ function EpisodeSA09() {
 		UName + ",SA09,Eval02," + SLplayer.GetVar("q_SA09_Eval_02") + "," + SLplayer.GetVar("q_SA09_Eval_02_Comment") + "\r\n" +
 		UName + ",SA09,Eval03," + SLplayer.GetVar("q_SA09_Eval_03") + "," + SLplayer.GetVar("q_SA09_Eval_03_Comment") + "\r\n" +
 		UName + ",SA09,Eval04," + SLplayer.GetVar("q_SA09_Eval_04") + "," + SLplayer.GetVar("q_SA09_Eval_04_Comment") + "\r\n";
+		console.log("function EpisodeSA09 ended");
 }
 
 function EpisodeSA10() {
+	console.log("function EpisodeSA10 started");
 	Interactions1 = " \r\n" +
 		UName + ",SA10,Reflect01," + SLplayer.GetVar("q_SA10_Reflect_01") + "," + SLplayer.GetVar("q_SA10_Reflect_01_Comment") + "\r\n" +
 		UName + ",SA10,Reflect02," + SLplayer.GetVar("q_SA10_Reflect_02") + "," + SLplayer.GetVar("q_SA10_Reflect_02_Comment") + "\r\n" +
@@ -342,9 +392,11 @@ function EpisodeSA10() {
 		UName + ",SA10,Eval02," + SLplayer.GetVar("q_SA10_Eval_02") + "," + SLplayer.GetVar("q_SA10_Eval_02_Comment") + "\r\n" +
 		UName + ",SA10,Eval03," + SLplayer.GetVar("q_SA10_Eval_03") + "," + SLplayer.GetVar("q_SA10_Eval_03_Comment") + "\r\n" +
 		UName + ",SA10,Eval04," + SLplayer.GetVar("q_SA10_Eval_04") + "," + SLplayer.GetVar("q_SA10_Eval_04_Comment") + "\r\n";
+	console.log("function EpisodeSA10 ended");
 }
 
 function EpisodeSA11() {
+console.log("function EpisodeSA11 started");
 	Interactions1 = " \r\n" +
 		UName + ",SA11,Reflect01," + SLplayer.GetVar("q_SA11_Reflect_01") + "," + SLplayer.GetVar("q_SA11_Reflect_01_Comment") + "\r\n" +
 		UName + ",SA11,Reflect02," + SLplayer.GetVar("q_SA11_Reflect_02") + "," + SLplayer.GetVar("q_SA11_Reflect_02_Comment") + "\r\n" +
@@ -359,9 +411,11 @@ function EpisodeSA11() {
 		UName + ",SA11,Eval02," + SLplayer.GetVar("q_SA11_Eval_02") + "," + SLplayer.GetVar("q_SA11_Eval_02_Comment") + "\r\n" +
 		UName + ",SA11,Eval03," + SLplayer.GetVar("q_SA11_Eval_03") + "," + SLplayer.GetVar("q_SA11_Eval_03_Comment") + "\r\n" +
 		UName + ",SA11,Eval04," + SLplayer.GetVar("q_SA11_Eval_04") + "," + SLplayer.GetVar("q_SA11_Eval_04_Comment") + "\r\n";
+	console.log("function EpisodeSA11 ended");
 }
 
 function EpisodeSA12() {
+	console.log("function EpisodeSA12 started");
 	Interactions1 = " \r\n" +
 		UName + ",Chapter,Pages viewed," + "\r\n" +
 		UName + ",SA01," + SLplayer.GetVar("p_SA01_Viewed") + "\r\n" +
@@ -435,9 +489,11 @@ function EpisodeSA12() {
 		UName + ",SA12,Eval_02," + SLplayer.GetVar("q_SA12_Eval_02") + "," + SLplayer.GetVar("q_SA12_Eval_02_Comment") + "\r\n" +
 		UName + ",SA12,Eval_03," + SLplayer.GetVar("q_SA12_Eval_03") + "," + SLplayer.GetVar("q_SA12_Eval_03_Comment") + "\r\n" +
 		UName + ",SA12,Eval_04," + SLplayer.GetVar("q_SA12_Eval_04") + "," + SLplayer.GetVar("q_SA12_Eval_04_Comment") + "\r\n";
+	console.log("function EpisodeSA12 ended");
 }
 
 function GetDebug() {
+	console.log("function GetDebug started");
 	var OSName = "Unknown OS";
 	if (navigator.appVersion.indexOf("Win") != -1) OSName = "Windows";
 	if (navigator.appVersion.indexOf("Mac") != -1) OSName = "MacOS";
@@ -525,9 +581,12 @@ function GetDebug() {
 
 	SLplayer.SetVar("G_SystemInfo", SystemInfo);
 	SLplayer.SetVar("j_output_debug", debug);
+	console.log("function GetDebug ended");
+	console.log(debug);
 }
 
 function ExecuteEpisode() {
+	console.log("ExecuteEpisode started", EpisodeID)
 	if (EpisodeID === "SA00") {
 		EpisodeSA00();
 		SLplayer.SetVar("j_output_answers", Interactions1);
@@ -586,87 +645,19 @@ function ExecuteEpisode() {
 }
 
 function UpdateCompletion() {
+	console.log("UpdateCompletion function started. Values at start of function:");
+	console.log("Page Number: ", pageNumber);
+	console.log("IsPageComplete: ", IsPageComplete);
+	console.log("PageCompletionStatuses: ", PageCompletionStatuses);
 
-	ProjectSlideNumber = ProjectTotalSlides.toString().padStart(3, '0');
-	IsPageComplete = PageCompletionStatuses.match("page" + ProjectSlideNumber + ": (true|false)")[1];
+	var pageNumber = ProjectSlideNumber.toString().padStart(3, '0');
+	IsPageComplete = PageCompletionStatuses.match("page" + pageNumber + ": (true|false)")[1] === 'true';
 
 	SLplayer.SetVar("G_CompletionList", PageCompletionStatuses);
 	SLplayer.SetVar("G_IsPageComplete", IsPageComplete);
-}
-}
-
-function openLinkToGlossary() {
-  var SLplayer = GetPlayer();
-  var urlbase = SLplayer.GetVar("G_GlossaryLinkBase");
-  var episodeID = SLplayer.GetVar("G_ThisEpisodeID");
-  var linkID = SLplayer.GetVar("G_ThisLinkID");
-  var language = SLplayer.GetVar("G_CourseLanguage");
-
-  // Combine URL 
-
-  var combinedurl = urlbase + episodeID + "#" + linkID;
-
-  if (language === "NL") {
-    window.open(combinedurl, "Woordenlijst" + linkID);
-  } else {
-    window.open(combinedurl, "Glossary" + linkID);
-  }
-
-  SLplayer.SetVar("G_ThisLinkID", "");
+	console.log("UpdateCompletion function ended. Values at end of function:");
+	console.log("Page Number: ", pageNumber);
+	console.log("IsPageComplete: ", IsPageComplete);
+	console.log("PageCompletionStatuses: ", PageCompletionStatuses);
 }
 
-function sanitizeCommentInput() {
-	var SLplayer = GetPlayer();
-
-	var activeComment = SLplayer.GetVar("G_ActiveCommentInput");
-	if (activeComment) {
-		activeComment = activeComment.replace(/[\r\n,"]/g, " ");
-		SLplayer.SetVar("G_ActiveCommentInput", activeComment);
-	}
-
-	var activeQuestion = SLplayer.GetVar("G_ActiveQuestionInput_text");
-	if (activeQuestion) {
-		activeQuestion = activeQuestion.replace(/[\r\n,"]/g, " ");
-		SLplayer.SetVar("G_ActiveQuestionInput_text", activeQuestion);
-	}
-}
-
-function setPageComplete() {
-var SLplayer = GetPlayer();
-var ProjectSlideNumber = SLplayer.GetVar("j_ProjectSlideNumber");
-var ProjectTotalSlides = SLplayer.GetVar("j_ProjectTotalSlides");
-var pageCompletionStatuses = SLplayer.GetVar("G_CompletionList");
-
-var pageNumber = ProjectSlideNumber.toString().padStart(3, '0');
-var currentPageStatus = "page" + pageNumber + ": true";
-
-
-if (!pageCompletionStatuses.includes(currentPageStatus)) {
-  pageCompletionStatuses = pageCompletionStatuses.replace("page" + pageNumber + ": false", currentPageStatus);
-
-  SLplayer.SetVar("G_CompletionList", pageCompletionStatuses);
-  SLplayer.SetVar("G_IsPageComplete", true);
-
-}
-}
-
-function unlockAllPages() {
-var SLplayer = GetPlayer();
-
-var totalPages = SLplayer.GetVar("j_ProjectTotalSlides");
-
-var pageCompletionStatuses = SLplayer.GetVar("G_CompletionList");
-
-if (!pageCompletionStatuses) {
-  pageCompletionStatuses = "";
-  for (var i = 1; i <= totalPages; i++) {
-    var pageNumber = i.toString().padStart(3, '0');
-    pageCompletionStatuses += "page" + pageNumber + ": true\n";
-  }
-}
-
-// Set pageCompletionStatuses to SL text variable G_PageCompletionStatuses
-SLplayer.SetVar("G_CompletionList", pageCompletionStatuses);
-
-SLplayer.SetVar("G_IsPageComplete", true);
-}
